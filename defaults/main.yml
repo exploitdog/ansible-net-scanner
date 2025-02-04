@@ -1,0 +1,22 @@
+---
+uninstall: false
+_exploitdog_net_scanner_binary_install_dir: "/usr/local/bin"
+_exploitdog_net_scanner_system_group: "exploitdog-net-scanner"
+_exploitdog_net_scanner_system_user: "{{ _exploitdog_net_scanner_system_group }}"
+_exploitdog_net_scanner_systemd_service:
+  file: "/etc/systemd/system/exploitdog_net_scanner.service"
+  mode: "0644"
+_deb_architecture: {
+    "aarch64": "arm64",
+    "x86_64": "amd64"
+  }
+exploitdog_net_scanner_url: "https://exploitdog.com"
+exploitdog_net_scanner_version: "1.0.0"
+exploitdog_net_scanner_log_level: "info"
+exploitdog_net_scanner_allowed_ips:
+  - "0.0.0.0/0"
+vm_network_interfaces:
+  - "lo"
+vm_dns_servers:
+  - "8.8.8.8"
+  - "1.1.1.1"

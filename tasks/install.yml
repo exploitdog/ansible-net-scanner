@@ -1,0 +1,91 @@
+---
+- name: Create the exploitdog_net_scanner group
+  group:
+    name: "{{ _exploitdog_net_scanner_system_group }}"
+    state: present
+    system: true
+  when: _exploitdog_net_scanner_system_group != "root"
+
+- name: Create the exploitdog_net_scanner user
+  user:
+    name: "{{ _exploitdog_net_scanner_system_user }}"
+    groups: "{{ _exploitdog_net_scanner_system_group }}"
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    home: /
+  when: _exploitdog_net_scanner_system_user != "root"
+
+- name: Create directories 
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ _exploitdog_net_scanner_system_user }}"
+    group: "{{ _exploitdog_net_scanner_system_group }}"
+    mode: "{{ item.mode | default('0711') }}"
+  with_items: 
+    - path: /var/log/exploitdog_net_scanner
+    - path: /var/lib/exploitdog_net_scanner
+    - path: /etc/exploitdog_net_scanner
+      mode: '0751'
+
+- name: Install dependent packages
+  package:
+    name: libpcap-dev
+
+- name: Get exploitdog service account token
+  delegate_to: localhost
+  uri:
+    url: "{{ exploitdog_net_scanner_url }}/api/v1/oauth/token"
+    method: POST
+    body_format: "json"
+    status_code: 200
+    body: |
+      {
+        "grant_type": "client_credentials",
+        "client_id": "{{ exploitdog_sa_client_id }}",
+        "client_secret": "{{ exploitdog_sa_client_secret }}"
+      }
+  register: exploitdog_sa_token
+
+- name: Get Net Scanner builds
+  delegate_to: localhost
+  uri:
+    url: "{{ exploitdog_net_scanner_url }}/api/v1/update-center/builds?name=net-scanner"
+    method: GET
+    status_code: 200
+    headers:
+      Authorization: "Bearer {{ exploitdog_sa_token.json.access_token }}"
+  register: exploitdog_net_scanner_builds
+
+- name: Set _arch (deb architecture)
+  set_fact:
+    _arch: "{{ [ansible_architecture] | map('extract', _deb_architecture) | first }}"
+
+- name: Set exploitdog_net_scanner_build_id by version
+  set_fact:
+    exploitdog_net_scanner_build_id: "{{ item.id }}"
+  with_items: "{{ exploitdog_net_scanner_builds.json.data }}"
+  when: item.name == "net-scanner" and item.os == ansible_system | lower and item.version == exploitdog_net_scanner_version and item.arch == _arch and exploitdog_net_scanner_build is not defined
+
+- name: Set exploitdog_net_scanner_build_id by build
+  set_fact:
+    exploitdog_net_scanner_build_id: "{{ item.id }}"
+  with_items: "{{ exploitdog_net_scanner_builds.json.data }}"
+  when: item.name == "net-scanner" and item.os == ansible_system | lower and item.arch == _arch and exploitdog_net_scanner_build is defined and item.build == exploitdog_net_scanner_build
+
+- name: Get exploitdog net scanner binary
+  delegate_to: localhost
+  get_url:
+    url: "{{ exploitdog_net_scanner_url }}/api/v1/update-center/builds/{{ exploitdog_net_scanner_build_id }}"
+    dest: /tmp/exploitdog_net_scanner_{{ ansible_system | lower }}_{{_arch}}
+    headers:
+      Authorization: "Bearer {{ exploitdog_sa_token.json.access_token }}"
+
+- name: Copy exploitdog_net_scanner binary
+  copy:
+    src: /tmp/exploitdog_net_scanner_{{ ansible_system | lower }}_{{_arch}}
+    dest: "{{ _exploitdog_net_scanner_binary_install_dir }}/exploitdog_net_scanner"
+    mode: 0755
+  notify: "restart exploitdog_net_scanner"

@@ -1,0 +1,9 @@
+---
+- name: Restart exploitdog_net_scanner systemd service
+  become: true
+  systemd:
+    daemon_reload: true
+    name: exploitdog_net_scanner
+    state: restarted
+  listen: "restart exploitdog_net_scanner"
+  when: not ansible_check_mode

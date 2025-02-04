@@ -1,0 +1,19 @@
+
+---
+- name: Copy the exploitdog_net_scanner service file
+  template:
+    src: "exploitdog_net_scanner.{{ ansible_service_mgr | lower }}.j2"
+    dest: "{{ lookup('vars', '_exploitdog_net_scanner_' + ansible_service_mgr + '_service').file }}"
+    owner: root
+    group: root
+    mode: "{{ lookup('vars', '_exploitdog_net_scanner_' + ansible_service_mgr + '_service').mode }}"
+  notify: "restart exploitdog_net_scanner"
+
+- name: Copy config file
+  template:
+    src: "exploitdog_net_scanner.config.j2"
+    dest: "/etc/exploitdog_net_scanner/config.json"
+    owner: "{{ _exploitdog_net_scanner_system_user }}"
+    group: "{{ _exploitdog_net_scanner_system_group }}"
+    mode: 0600
+  notify: "restart exploitdog_net_scanner"
