@@ -11,7 +11,7 @@ _deb_architecture: {
     "x86_64": "amd64"
   }
 exploitdog_net_scanner_url: "https://exploitdog.com"
-exploitdog_net_scanner_version: "1.0.0"
+exploitdog_net_scanner_version: "1.2.0"
 exploitdog_net_scanner_log_level: "info"
 exploitdog_net_scanner_allowed_ips:
   - "0.0.0.0/0"
