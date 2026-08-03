@@ -14,7 +14,7 @@
 | `exploitdog_net_scanner_allowed_ips` | []                       | Разрешенные IP-подсети для сканирования                                                       |
 | `vm_dns_servers`                     | []                       | DNS-серверы для разрешения доменов                                                            |
 | `exploitdog_net_scanner_log_level`   | "info"                   | Уровень журнала: "debug", "info", "warning", "error"                                          |
-| `exploitdog_net_scanner_version`     | "1.0.0"                  | Версия приложения (обязательный параметр, если не указан `exploitdog_net_scanner_build_id`)   |
+| `exploitdog_net_scanner_version`     | "1.6.3"                  | Версия приложения (обязательный параметр, если не указан `exploitdog_net_scanner_build_id`)   |
 | `exploitdog_net_scanner_build_id`    | ""                       | ID сборки приложения (обязательный параметр, если не указан `exploitdog_net_scanner_version`) |
 | `exploitdog_net_scanner_secure_path` | ""                       | Секретный сегмент пути прокси для exploitDog-агента (если пуст — генерируется случайный UUID) |
 
